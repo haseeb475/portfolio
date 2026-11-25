@@ -1,26 +1,326 @@
 @import "tailwindcss";
 
+/* Dark mode follows an explicit data-theme attribute (set before paint in layout.tsx). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ------------------------------------------------------------------
+   Design tokens — "paper & ink" pages with dark instrument panels.
+   ------------------------------------------------------------------ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f1eee6;
+  --paper-2: #e8e4d9;
+  --ink: #141512;
+  --ink-2: #2f302b;
+  --muted: #5d5c55;
+  --rule: #d4cfc1;
+  --accent: #17703c; /* signal green tuned for AA on paper */
+  --accent-soft: rgb(23 112 60 / 0.1);
+
+  /* Instrument panels stay dark in both themes */
+  --panel: #0e0f0c;
+  --panel-2: #161813;
+  --panel-rule: #2a2d25;
+  --panel-ink: #e9e7df;
+  --panel-muted: #8a8c82;
+  --signal: #4be38a;
+  --signal-soft: rgb(75 227 138 / 0.14);
+  --warn: #f2b14b;
+
+  --todo: #b45309;
+
+  /* Sticky notes in the weekend logbook */
+  --note: #f8e9a6;
+  --note-ink: #2c2712;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --paper: #0f100d;
+  --paper-2: #171813;
+  --ink: #ece9e0;
+  --ink-2: #c4c1b7;
+  --muted: #918f86;
+  --rule: #2b2c26;
+  --accent: #4be38a;
+  --accent-soft: rgb(75 227 138 / 0.12);
+
+  --panel: #171913;
+  --panel-2: #1e211a;
+  --panel-rule: #33372d;
+
+  --todo: #f2b14b;
+
+  --note: #e3d48d;
+  --note-ink: #26220f;
+
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-panel-rule: var(--panel-rule);
+  --color-panel-ink: var(--panel-ink);
+  --color-panel-muted: var(--panel-muted);
+  --color-signal: var(--signal);
+  --color-signal-soft: var(--signal-soft);
+  --color-warn: var(--warn);
+  --color-todo: var(--todo);
+  --color-note: var(--note);
+  --color-note-ink: var(--note-ink);
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+  --font-display: var(--font-serif), "Iowan Old Style", Georgia, serif;
+  --font-hand: var(--font-caveat), "Bradley Hand", cursive;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------ */
+@layer base {
+  html {
+    background: var(--paper);
+    color: var(--ink);
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    overflow-x: clip;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  /* Display serif: a fuller weight and optical sizing so headlines never look thin. */
+  .font-display {
+    font-weight: 430;
+    font-optical-sizing: auto;
+  }
+
+  /* Grayscale smoothing only for light-on-dark, where it helps; dark-on-light keeps full weight. */
+  [data-theme="dark"] body,
+  .bg-panel {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ------------------------------------------------------------------
+   Utilities
+   ------------------------------------------------------------------ */
+@utility page-x {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1360px;
+  padding-inline: 1.25rem;
+  @media (min-width: 768px) {
+    padding-inline: 2rem;
+  }
+  @media (min-width: 1024px) {
+    padding-inline: 3rem;
+  }
+}
+
+/* Small mono label used throughout ("§01", captions, metadata). */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Technical hairline grid used behind the hero and panels. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--ink) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--ink) 7%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+@utility bg-grid-panel {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Placeholder content the owner still needs to fill in (see src/content/profile.ts). */
+@utility todo {
+  color: var(--todo);
+  text-decoration: underline dashed;
+  text-underline-offset: 3px;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Hero entrance — CSS-driven so it plays before hydration (LCP-friendly).
+   ------------------------------------------------------------------ */
+@keyframes rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0 round 14px);
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0 round 14px);
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 55%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.anim-rise {
+  display: inline-block;
+  animation: rise 1.1s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 55ms + 80ms);
+}
+
+/* Transform-only entrance: text is painted from the first frame (keeps LCP early). */
+@keyframes lift {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.anim-lift {
+  animation: lift 1.1s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.anim-fade-up {
+  animation: fade-up 0.9s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.anim-panel-in {
+  animation: panel-in 1.2s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.pulse-dot {
+  animation: pulse-dot 2.4s ease-out infinite;
+}
+
+.caret {
+  animation: blink 1s steps(1) infinite;
+}
+
+/* Data "flowing" along diagram edges after they draw in. */
+@keyframes flow {
+  to {
+    stroke-dashoffset: -48;
+  }
+}
+.diagram-flow {
+  animation: flow 1.6s linear infinite;
+}
+
+/* Journey car: headlight beams only at night (dark theme). */
+.car-beam {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+[data-theme="dark"] .car-beam {
+  opacity: 1;
+}
+
+/* Hero contour lines drift very slowly, like a map under a moving lens. */
+@keyframes contour-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-1.5%, 1%, 0) rotate(0.6deg);
+  }
+}
+.contour-drift {
+  animation: contour-drift 38s ease-in-out infinite;
+  transform-origin: 60% 40%;
 }
